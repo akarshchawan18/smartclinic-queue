@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Staff · {{ clinic }}{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="15">{% endblock %}
+{% block right %}<a href="/staff/logout">Log out</a>{% endblock %}
+{% block main_class %}wide{% endblock %}
+{% block content %}
+{% from "_macros.html" import act %}
+
+<div class="tabs">
+  {% for n in doctors %}
+  <a class="btn {{ 'on' if loop.index0 == doc else 'ghost' }}" href="/staff?doc={{ loop.index0 }}">{{ n }}</a>
+  {% endfor %}
+</div>
+
+<div class="stats">
+  <div><span>Waiting now</span><b>{{ waiting|length }}</b></div>
+  <div><span>Seen today</span><b>{{ done }}</b></div>
+  <div><span>Average visit</span><b>{{ avg }} min</b></div>
+  <div><span>Longest wait</span>
+    <b>{% if waiting %}<span class="timer" data-sec="{{ longest }}" data-run data-late>{{ longest|mmss }}</span>{% else %}-{% endif %}</b>
+  </div>
+</div>
+
+<div class="panel now">
+  {% if current %}
+  <div class="row">
+    <div class="row left">
+      <span class="badge">{{ current.no }}</span>
+      <div>
+        <h2>{{ current.name }}</h2>
+        <p class="muted">In consultation &middot; <span class="timer" data-sec="{{ current.sec }}" data-run>{{ current.sec|mmss }}</span></p>
+      </div>
+    </div>
+    {{ act("done", "Finish", doc, "", "ghost") }}
+  </div>
+  {% else %}
+  <h2>Nobody in consultation</h2><p class="muted">Press Call next to start.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <div class="row">
+    <h2>Waiting ({{ waiting|length }})</h2>
+    {{ act("call_next", "Call next", doc) }}
+  </div>
+  <table class="list">
+    {% for r in waiting %}
+    <tr>
+      <td class="w56"><span class="badge">{{ r.no }}</span></td>
+      <td><b>{{ r.name }}</b><br><span class="muted">{{ r.phone[2:] }}</span></td>
+      <td class="right"><span class="timer waitclock" data-sec="{{ r.wait_sec }}" data-run data-late>{{ r.wait_sec|mmss }}</span></td>
+      <td class="right">{{ act("skip", "Skip", doc, r.id, "ghost") }}</td>
+    </tr>
+    {% else %}
+    <tr><td class="muted">Nobody is waiting.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if skipped %}
+<div class="panel">
+  <h2>Skipped</h2>
+  <table class="list">
+    {% for r in skipped %}
+    <tr>
+      <td class="w56"><span class="badge">{{ r.no }}</span></td>
+      <td><b>{{ r.name }}</b></td>
+      <td class="right">{{ act("restore", "Put back", doc, r.id, "ghost") }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<p class="muted center">
+  <a href="/poster">QR poster</a>
+  &middot;
+  <a href="/join">Patient form</a>
+  &middot;
+  <a href="/analytics">Patient Analytics</a>
+</p>
+{% endblock %}

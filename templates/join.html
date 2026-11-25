@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Get your token · {{ clinic }}{% endblock %}
+{% block main_class %}wide{% endblock %}
+{% block content %}
+<div class="split">
+  <section class="hero">
+    <h1>Skip the waiting room.</h1>
+    <p class="lead">Register in under a minute. Your token and live queue link arrive on WhatsApp, so you can wait wherever is comfortable.</p>
+    <ol class="how">
+      <li><b>1</b><div><strong>Register</strong><span>Your name and WhatsApp number</span></div></li>
+      <li><b>2</b><div><strong>Get your token</strong><span>Sent to your phone straight away</span></div></li>
+      <li><b>3</b><div><strong>Track your turn</strong><span>Live position, running wait time and a sound alert</span></div></li>
+    </ol>
+  </section>
+
+  <section class="panel formcard">
+    <h2 class="formtitle">Get your token</h2>
+    {% if error %}<div class="err" role="alert">{{ error }}</div>{% endif %}
+    <form method="post" action="/join">
+      <label for="n">Full name</label>
+      <input id="n" name="name" value="{{ f_name }}" required maxlength="60" autocomplete="name" placeholder="Your name">
+
+      <label for="p">WhatsApp number</label>
+      <input id="p" name="phone" value="{{ f_phone }}" type="tel" inputmode="numeric" required autocomplete="tel" placeholder="10-digit mobile number">
+
+      <label for="d">Service / Doctor</label>
+      <select id="d" name="doctor">
+        {% for d in doctors %}<option {{ "selected" if d == f_doctor }}>{{ d }}</option>{% endfor %}
+      </select>
+
+      <button class="full">Get my token</button>
+    </form>
+    <p class="muted center small">Your number is used only for queue updates.</p>
+  </section>
+</div>
+{% endblock %}

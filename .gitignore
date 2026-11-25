@@ -1,0 +1,31 @@
+﻿# Patient databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+backups/
+backups/**
+*.bak
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Python temporary files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# IDE files
+.idea/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Your queue · {{ clinic }}{% endblock %}
+{% block content %}
+{# The ids below are filled in by static/status.js #}
+<div class="panel center" id="card">
+  <p class="muted">Your token</p>
+  <div class="ring" id="tok">-</div>
+  <p class="muted" id="doc"></p>
+  <p class="msgwrap"><span class="pill" id="msg" aria-live="polite">Loading...</span></p>
+
+  <ol class="track" id="track">
+    <li>Registered</li><li>In queue</li><li>Your turn</li><li>Done</li>
+  </ol>
+
+  <div class="clock" id="clockbox">
+    <span id="clocklabel">Waiting time</span>
+    <b class="timer" id="timer" data-sec="0">00:00</b>
+  </div>
+
+  <div class="tiles">
+    <div><b id="ahead">-</b><span>Patients ahead</span></div>
+    <div><b id="wait">-</b><span>Estimated wait</span></div>
+  </div>
+  <p class="muted" id="srv"></p>
+</div>
+
+<div class="sound-reminder">
+  <p><strong>🔔 Don't miss your turn!</strong></p>
+  <p>Enable sound alerts to hear a notification when your turn approaches.</p>
+</div>
+
+<button type="button" class="sound" id="snd" aria-pressed="false">
+  <span id="sndlabel">Enable Sound Alerts</span>
+</button>
+
+<p class="muted center small">
+  Tap once to activate sound. Keep this page open to receive queue alerts.
+</p>
+<p class="muted center small">Tap once to allow sound. Your phone will beep and vibrate when your turn is close. Keep this page open.</p>
+
+<script src="/static/sound.js"></script>
+<script src="/static/status.js"></script>
+{% endblock %}

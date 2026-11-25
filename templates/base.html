@@ -1,0 +1,33 @@
+{# Shared page frame: header, footer, CSS. Every other page extends this. #}
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0e7c86">
+  <title>{% block title %}{{ clinic }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      {% include "_logo.html" %}
+      <div><b>{{ clinic }}</b><span>{{ tagline }}</span></div>
+    </div>
+    {% block right %}{% if phone %}<a href="tel:{{ phone }}">{{ phone }}</a>{% endif %}{% endblock %}
+  </header>
+
+  <main class="{% block main_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    {% if phone or address %}{{ [phone, address] | select | join(" · ") }}<br>{% endif %}
+    &copy; {{ clinic }}
+  </footer>
+
+</body>
+</html>

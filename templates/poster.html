@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Poster · {{ clinic }}{% endblock %}
+{% block content %}
+<div class="panel center poster">
+  <div class="poster-top">
+    <h1>Skip the crowd.<br>Get your token on your phone.</h1>
+  </div>
+  <div class="poster-body">
+    <img src="/qr.svg" alt="QR code to join the queue">
+    <p class="lead">Scan with your phone camera</p>
+    <ol class="steps">
+      <li><b>1</b>Register</li>
+      <li><b>2</b>Get your token on WhatsApp</li>
+      <li><b>3</b>Track your turn live</li>
+    </ol>
+    <p class="muted">{{ clinic }}</p>
+  </div>
+</div>
+{% endblock %}

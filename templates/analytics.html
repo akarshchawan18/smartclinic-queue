@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patient Records & Analytics</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{font-family:Arial,sans-serif;color:#172b35;background:#f4f7f8}*{box-sizing:border-box}body{margin:0}
+.top{background:#123b43;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.top h1{font-size:22px;margin:0}.top a{color:white;text-decoration:none;border:1px solid #ffffff66;padding:9px 13px;border-radius:8px}
+main{max-width:1200px;margin:26px auto;padding:0 18px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+select,input,button{font:inherit;padding:10px 12px;border:1px solid #d5dfe2;border-radius:8px;background:white}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.card,.panel{background:white;border:1px solid #e3eaec;border-radius:13px;padding:18px;box-shadow:0 3px 14px #123b4308}
+.metric{font-size:29px;font-weight:750;margin-top:8px}.muted{color:#687b83;font-size:13px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}.panel h2{font-size:16px;margin:0 0 16px}
+.chart-wrap{height:280px;position:relative}.search{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.search input{min-width:240px;flex:1}
+table{width:100%;min-width:850px;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid #edf1f2;white-space:nowrap}
+th{color:#61747c;font-weight:600}.table-scroll{overflow-x:auto}tbody tr:hover{background:#f8fbfb}.link{color:#087b83;cursor:pointer;text-decoration:underline}
+#message{padding:12px;color:#9b3434}.modal{display:none;position:fixed;inset:0;background:#10262c88;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:white;border-radius:14px;padding:20px;max-width:1000px;width:100%;max-height:85vh;overflow:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center}
+@media(max-width:760px){.cards{grid-template-columns:1fr}.charts{grid-template-columns:1fr}.chart-wrap{height:240px}}
+</style></head><body>
+<header class="top"><h1>Patient Records & Analytics</h1><a href="/staff">← Back to Staff Dashboard</a></header>
+<main>
+<div class="toolbar"><div><strong>Clinic performance</strong><div class="muted">Visit records and token timings</div></div><label>Year <select id="year"></select></label></div>
+<section class="cards">
+<div class="card"><div class="muted">Total visits</div><div class="metric" id="totalVisits">—</div></div>
+<div class="card"><div class="muted">Unique patients</div><div class="metric" id="uniquePatients">—</div></div>
+<div class="card"><div class="muted">Repeat visits</div><div class="metric" id="repeatVisits">—</div></div>
+</section>
+<section class="charts">
+<div class="panel"><h2>Monthly visits</h2><div class="chart-wrap"><canvas id="visitsChart"></canvas></div></div>
+<div class="panel"><h2>New and returning visits</h2><div class="chart-wrap"><canvas id="repeatChart"></canvas></div></div>
+</section>
+<section class="panel"><h2>Patient register</h2>
+<div class="search"><input id="search" placeholder="Search patient name or mobile"><button id="searchBtn">Search</button></div>
+<div class="muted" id="recordCount"></div>
+<div class="table-scroll"><table><thead><tr><th>Patient</th><th>Mobile</th><th>Visits</th><th>First visit</th><th>Last visit</th><th>Last token</th><th>Token time</th><th>Last doctor</th><th>Status</th><th>History</th></tr></thead><tbody id="patientRows"></tbody></table></div>
+<div id="message"></div></section></main>
+<div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Patient history</h2><button onclick="closeModal()">Close</button></div>
+<div class="table-scroll"><table><thead><tr><th>Date</th><th>Token</th><th>Token generated</th><th>Called at</th><th>Finished at</th><th>Consultation duration</th><th>Doctor</th><th>Status</th></tr></thead><tbody id="historyRows"></tbody></table></div></div></div>
+<script>
+let visitsChart,repeatChart;const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const ys=document.getElementById('year'),cy=new Date().getFullYear();for(let y=cy;y>=cy-5;y--){let o=document.createElement('option');o.value=y;o.textContent=y;ys.appendChild(o);}ys.value=cy;
+function fmtTime(ts){if(!ts)return '—';return new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date(ts*1000));}
+function fmtDuration(a,b){if(!a||!b||b<a)return '—';let sec=Math.floor(b-a);return Math.floor(sec/60)+' min '+(sec%60)+' sec';}
+async function loadOverview(){let r=await fetch('/analytics/api/overview?year='+ys.value,{cache:'no-store'});if(!r.ok)throw Error('Analytics request failed. Sign in again.');let d=await r.json();
+document.getElementById('totalVisits').textContent=d.total_visits.toLocaleString();document.getElementById('uniquePatients').textContent=d.unique_patients.toLocaleString();document.getElementById('repeatVisits').textContent=d.repeat_visits.toLocaleString();
+let labels=d.monthly.map(x=>months[+x.month.slice(5)-1]),opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}};
+if(visitsChart)visitsChart.destroy();if(repeatChart)repeatChart.destroy();
+visitsChart=new Chart(document.getElementById('visitsChart'),{type:'bar',data:{labels,datasets:[{label:'Visits',data:d.monthly.map(x=>x.visits)},{label:'Unique patients',data:d.monthly.map(x=>x.unique_patients)}]},options:opts});
+repeatChart=new Chart(document.getElementById('repeatChart'),{type:'line',data:{labels,datasets:[{label:'First recorded visits',data:d.monthly.map(x=>x.new_visits),tension:.25},{label:'Repeat visits',data:d.monthly.map(x=>x.repeat_visits),tension:.25}]},options:opts});}
+async function loadPatients(){let q=encodeURIComponent(document.getElementById('search').value.trim()),r=await fetch('/analytics/api/patients?search='+q,{cache:'no-store'});if(!r.ok)throw Error('Patient records request failed. Sign in again.');let d=await r.json();
+document.getElementById('recordCount').textContent=d.total+' patient records';let body=document.getElementById('patientRows');body.innerHTML='';
+d.patients.forEach(p=>{let tr=document.createElement('tr'),vals=[p.name||'—',p.phone,p.visits,p.first_visit,p.last_visit,p.last_token==null?'—':'#'+p.last_token,fmtTime(p.last_token_time),p.last_doctor||'—',p.last_status||'—'];vals.forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.appendChild(td);});let td=document.createElement('td'),a=document.createElement('span');a.className='link';a.textContent='View';a.onclick=()=>showHistory(p.phone,p.name);td.appendChild(a);tr.appendChild(td);body.appendChild(tr);});}
+async function showHistory(phone,name){let r=await fetch('/analytics/api/patient/'+encodeURIComponent(phone));if(!r.ok){alert('Unable to load patient history');return;}let d=await r.json();document.getElementById('modalTitle').textContent=(name||'Patient')+' — '+phone;let body=document.getElementById('historyRows');body.innerHTML='';
+d.visits.forEach(v=>{let tr=document.createElement('tr'),vals=[v.day,'#'+v.no,fmtTime(v.created),fmtTime(v.called),fmtTime(v.finished),fmtDuration(v.called,v.finished),v.doctor,v.status];vals.forEach(x=>{let td=document.createElement('td');td.textContent=x??'—';tr.appendChild(td);});body.appendChild(tr);});document.getElementById('modal').style.display='flex';}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function err(e){document.getElementById('message').textContent=e.message;}
+document.getElementById('searchBtn').onclick=()=>loadPatients().catch(err);document.getElementById('search').onkeydown=e=>{if(e.key==='Enter')loadPatients().catch(err);};ys.onchange=()=>loadOverview().catch(err);
+Promise.all([loadOverview(),loadPatients()]).catch(err);
+</script></body></html>

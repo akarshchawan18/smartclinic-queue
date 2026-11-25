@@ -1,0 +1,9 @@
+{# A small button that posts a staff action (call next, skip, ...). #}
+{% macro act(action, label, doc, pid="", cls="") -%}
+<form method="post" action="/staff/action" class="inline">
+  <input type="hidden" name="action" value="{{ action }}">
+  <input type="hidden" name="doc" value="{{ doc }}">
+  <input type="hidden" name="id" value="{{ pid }}">
+  <button class="{{ cls }}">{{ label }}</button>
+</form>
+{%- endmacro %}
